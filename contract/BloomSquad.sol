@@ -10,18 +10,22 @@ contract BloomSquad is ERC1155, Ownable {
     mapping(uint256 => uint256) public tokenLimits;
     mapping(uint256 => uint256) public tokensMinted;
 
+    mapping(uint256 => mapping(address => bool)) public allowList;
+
     constructor() ERC1155("ipfs://bafybeicdwvru4rhggyxjoafbqjbobfabpy6d42en5jvywxucofgeqqk6hi/{id}.json") {
         tokenMetadata[0] = "BloomSquadOG.json";
 
         tokenLimits[0] = 100;
     }
 
-    function mint(uint256 tokenId, address to) external
+    function mint(uint256 tokenId) external
     {
         require(tokensMinted[tokenId] < tokenLimits[tokenId], "No more tokens left");
+        require(allowList[tokenId][_msgSender()], "Not on list");
 
-        _mint(to, tokenId, 1, "");
+
         tokensMinted[tokenId]++;
+        _mint(_msgSender(), tokenId, 1, "");
     }
 
     function updateMetadata(uint256 tokenId, string memory metadata) external onlyOwner
@@ -39,6 +43,11 @@ contract BloomSquad is ERC1155, Ownable {
     function baseURI() public view virtual returns (string memory)
     {
         return _baseURI;
+    }
+
+    function toggleAddressAllow(uint256 tokenId, address userAddress, bool allow) external onlyOwner
+    {
+        allowList[tokenId][userAddress] = allow;
     }
 
     function updateBaseURI(string memory newURI) external onlyOwner
