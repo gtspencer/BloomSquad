@@ -23,9 +23,20 @@ contract BloomSquad is ERC1155, Ownable {
         require(tokensMinted[tokenId] < tokenLimits[tokenId], "No more tokens left");
         require(allowList[tokenId][_msgSender()], "Not on list");
 
-
         tokensMinted[tokenId]++;
+        allowList[tokenId][_msgSender()] = false;
         _mint(_msgSender(), tokenId, 1, "");
+    }
+
+    function ownerMint(uint256 tokenId, address to) external onlyOwner
+    {
+        tokensMinted[tokenId]++;
+        _mint(to, tokenId, 1, "");
+    }
+
+    function batchMint(uint256 tokenId, uint256[] memory ids, uint256[] memory amounts) external onlyOwner
+    {
+        _mintBatch(_msgSender(), ids, amounts, "");
     }
 
     function updateMetadata(uint256 tokenId, string memory metadata) external onlyOwner
